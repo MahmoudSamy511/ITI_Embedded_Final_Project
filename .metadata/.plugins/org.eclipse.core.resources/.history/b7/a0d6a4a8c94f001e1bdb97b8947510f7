@@ -1,0 +1,62 @@
+#include"../1-MCAL/UART/UART_Interface.h"
+#include"../1-MCAL/Timers/Timer_Interface.h"
+#include"../1-MCAL/DIO/DIO_interface.h"
+#include"../1-MCAL/ADC/ADC_Interface.h"
+#include"../2-HAL/Servo_Motor/Servo_Interface.h"
+#include"../2-HAL/DC_Motor/DC_Motor_Interface.h"
+#include<string.h>
+static u16 digitalValue = 0xffff;
+void ADC(u16 ADC_Value){
+	digitalValue = ADC_Value;
+}
+int main(){
+	UART_enu_Init();
+	ADC_enu_Init();
+	GI_enu_Enable();
+	Servo_enu_Init(1,0);
+	DC_Motor_enu_Init(1,0);
+	DC_Motor_enu_Rotate(MOTOR1,CW);
+	Timers_enu_Init(TIMER0,FAST_PWM_NON_INVERTING,CLK_8);
+	DIO_enu_SetPinDirection(DIO_U8_PORTC,DIO_U8_PIN0,DIO_U8_OUTPUT);
+	DIO_enu_SetPinDirection(DIO_U8_PORTC,DIO_U8_PIN1,DIO_U8_OUTPUT);
+	DIO_enu_SetPinDirection(DIO_U8_PORTC,DIO_U8_PIN2,DIO_U8_OUTPUT);
+	DIO_enu_SetPinDirection(DIO_U8_PORTC,DIO_U8_PIN3,DIO_U8_OUTPUT);
+	DIO_enu_SetPinDirection(DIO_U8_PORTB,DIO_U8_PIN3,DIO_U8_OUTPUT);
+	u8 str[4];
+	while(1){
+		u8 speed = 0;
+		if(digitalValue  != 0xffff ){
+			ADC_enu_GetDigitalValueASynch(ADC_U8_CHANNEL0,&ADC);
+			speed =(digitalValue * 255UL)/1023;
+			Timers_enu_Timer0SetCompareValue(speed);
+		}
+		digitalValue = 0x
+		//UART_enu_recieveString(str,3);
+		if(!strcmp(str,"EM\r")){
+			DIO_enu_SetPinValue(DIO_U8_PORTC,DIO_U8_PIN0,DIO_U8_HIGH);
+			DIO_enu_SetPinValue(DIO_U8_PORTC,DIO_U8_PIN3,DIO_U8_HIGH);
+		}else if(!strcmp(str,"SM\r")){
+			DC_Motor_enu_Stop(MOTOR1);
+		}else{
+			u8 i = 0;
+			u8 temp = 0;
+			while(str[i] != '\r'){
+				temp = (temp*10) + (str[i] - '0');
+				i++;
+			}
+			if(temp < 20){
+			DIO_enu_SetPinValue(DIO_U8_PORTC,DIO_U8_PIN2,DIO_U8_HIGH);
+			}else if((temp >= 20)&&(temp <= 40)){
+			DIO_enu_SetPinValue(DIO_U8_PORTC,DIO_U8_PIN1,DIO_U8_HIGH);
+			}else if ((temp > 40)&&(temp <= 50)){
+			DIO_enu_SetPinValue(DIO_U8_PORTC,DIO_U8_PIN0,DIO_U8_HIGH);
+			}else{
+			DIO_enu_SetPinValue(DIO_U8_PORTC,DIO_U8_PIN0,DIO_U8_HIGH);
+			DIO_enu_SetPinValue(DIO_U8_PORTC,DIO_U8_PIN3,DIO_U8_HIGH);
+			}
+		}
+	}
+
+
+	return 0;
+}

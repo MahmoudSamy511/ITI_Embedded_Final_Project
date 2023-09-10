@@ -1,0 +1,43 @@
+15:21:35 **** Incremental Build of configuration Debug for project MCU1_Transmitter ****
+make all 
+Building file: ../4-APP/main.c
+Invoking: AVR Compiler
+avr-gcc -Wall -g2 -gstabs -O0 -fpack-struct -fshort-enums -ffunction-sections -fdata-sections -std=gnu99 -funsigned-char -funsigned-bitfields -mmcu=atmega32 -DF_CPU=16000000UL -MMD -MP -MF"4-APP/main.d" -MT"4-APP/main.o" -c -o "4-APP/main.o" "../4-APP/main.c"
+In file included from ../4-APP/main.c:3:
+c:/winavr-20100110/lib/gcc/../../avr/include/util/delay.h:90:3: warning: #warning "Compiler optimizations disabled; functions from <util/delay.h> won't work as designed"
+../4-APP/main.c: In function 'main':
+../4-APP/main.c:8: warning: pointer targets in passing argument 1 of 'UART_enu_sendString' differ in signedness
+../4-APP/main.c:18: warning: pointer targets in passing argument 1 of 'UART_enu_sendString' differ in signedness
+Finished building: ../4-APP/main.c
+ 
+Building target: MCU1_Transmitter.elf
+Invoking: AVR C Linker
+avr-gcc -Wl,-Map,MCU1_Transmitter.map -mmcu=atmega32 -o "MCU1_Transmitter.elf"  ./4-APP/main.o  ./2-HAL/Servo_Motor/Servo_Program.o  ./2-HAL/LCD/LCD_Program.o  ./2-HAL/EEPROM/EEPROM_Program.o  ./2-HAL/DC_Motor/DC_Motor_Program.o  ./1-MCAL/WDT/WDT_Program.o  ./1-MCAL/UART/UART_Program.o  ./1-MCAL/Timers/Timer_Program.o  ./1-MCAL/I2C/I2C_Program.o  ./1-MCAL/GI/GI_Program.o  ./1-MCAL/EXTI/EXTI_Program.o  ./1-MCAL/DIO/DIO_program.o  ./1-MCAL/ADC/ADC_Program.o   
+Finished building target: MCU1_Transmitter.elf
+ 
+Invoking: AVR Create Extended Listing
+avr-objdump -h -S MCU1_Transmitter.elf  >"MCU1_Transmitter.lss"
+Finished building: MCU1_Transmitter.lss
+ 
+Create Flash image (ihex format)
+avr-objcopy -R .eeprom -R .fuse -R .lock -R .signature -O ihex MCU1_Transmitter.elf  "MCU1_Transmitter.hex"
+Finished building: MCU1_Transmitter.hex
+ 
+Invoking: Print Size
+avr-size --format=avr --mcu=atmega32 MCU1_Transmitter.elf
+AVR Memory Usage
+----------------
+Device: atmega32
+
+Program:   20670 bytes (63.1% Full)
+(.text + .data + .bootloader)
+
+Data:         43 bytes (2.1% Full)
+(.data + .bss + .noinit)
+
+
+Finished building: sizedummy
+ 
+
+15:21:35 Build Finished (took 661ms)
+

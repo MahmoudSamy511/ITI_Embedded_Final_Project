@@ -1,0 +1,11 @@
+#include"../1-MCAL/UART/UART_Interface.h"
+int main(void)
+{
+UART_enu_Init();
+UART_enu_sendString("")
+	while(1){
+
+	}
+
+	return 0;
+}
