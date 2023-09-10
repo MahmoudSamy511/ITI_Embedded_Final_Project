@@ -17,6 +17,8 @@ int main(void)
 		_delay_ms(500);
 		UART_enu_sendString("SM");
 		_delay_ms(500);
+		UART_enu_sendString("AB");
+		_delay_ms(500);
 	}
 
 	return 0;

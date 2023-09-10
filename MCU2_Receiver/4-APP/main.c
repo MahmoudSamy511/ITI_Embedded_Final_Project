@@ -52,11 +52,15 @@ int main()
 			}
 			else if(!strcmp(str,"SM\r"))
 			{
+				/*  stop the machine */
+				DC_Motor_enu_Stop(MOTOR1);
+			}
+			else if(!strcmp(str,"AB\r"))
+			{
 				follow_abnormal_5Sec();
 			}
 			else
 			{
-				DIO_enu_SetPinValue(DIO_U8_PORTC,DIO_U8_PIN2,DIO_U8_HIGH);
 				u8 i = 0;
 				u8 temp = 0;
 				while(str[i] != '\r'){
