@@ -1,0 +1,65 @@
+/******************************************************************
+**********************  Author: Ehab Magdy       ******************
+**********************	File  : timer2.c         ******************
+**********************	Date  : 09 Sep, 2023     ******************
+*******************************************************************/
+
+#include <avr/io.h>
+#include <avr/interrupt.h>
+
+#include"../../5-LIB/TYPEDEF.h"
+#include"../../5-LIB/BIT_MATH.h"
+
+#include "timer2.h"
+
+volatile u16 Count_5_Seconds =0;
+
+void (*Timer2_PFvoidOVFCall)(void);
+
+void Timer2_voidInit(void (*Copy_PFvoidName)(void))
+{
+	/* Select Timer2 Mode ==> Normal Mode */
+	CLR_BIT(TCCR2 , WGM20);
+	CLR_BIT(TCCR2 , WGM21);
+
+	/* Select Prescaler ==> /1024 */
+	SET_BIT(TCCR2 , CS00);
+	SET_BIT(TCCR2 , CS01);
+	SET_BIT(TCCR2 , CS02);
+	
+    /* Set Call Back */
+    Timer2_PFvoidOVFCall = Copy_PFvoidName;
+}
+
+void Timer2_voidStartCounting(void)
+{
+	/* Set Counter = 0 */
+	Count_5_Seconds = 0;
+    /* Set preload value */
+    TCNT0 = 211;
+	/* Enable OVF Interrupt */
+	SET_BIT(TIMSK , TOIE2);
+}
+
+void Timer2_voidDisableCounting(void)
+{
+	/* Disable OVF Interrupt */
+	CLR_BIT(TIMSK , TOIE2);
+}
+
+// 16.384ms for OVF -> 305.1757 times for 5 seconds
+ISR(TIMER2_OVF_vect)
+{
+	Count_5_Seconds++;
+
+	if(306 == Count_5_Seconds)
+	{
+		/* Set preload value */
+		TCNT0 = 211;
+		/* Call back function */
+		Timer2_PFvoidOVFCall();
+		/* reset Counter */
+		Count_5_Seconds = 0;
+	}
+	else{/* Nothing */}
+}

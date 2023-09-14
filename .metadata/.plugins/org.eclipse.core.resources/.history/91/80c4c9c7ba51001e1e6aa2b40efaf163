@@ -1,0 +1,116 @@
+#include"../1-MCAL/UART/UART_Interface.h"
+#include"../1-MCAL/DIO/DIO_interface.h"
+#include"../1-MCAL/ADC/ADC_Interface.h"
+#include"../1-MCAL/WDT/WDT_Interface.h"
+#include"../1-MCAL/EXTI/EXTI_Interface.h"
+#include"../1-MCAL/I2C/I2C_Interface.h"
+#include"../1-MCAL/GI/GI_Interface.h"
+#include"../1-MCAL/Timers/Timer_Interface.h"
+#include"../2-HAL/EEPROM/EEPROM_Interface.h"
+#define F_CPU 16000000UL
+#include<util/delay.h>
+
+#define NORMAL_STATE    	10
+#define EMERGENCY_STATE    	128
+#define ABNORMAL_STATE    	255
+
+u8 lastTemp = 0;
+u8 state = 0;
+void pressButton(void);
+u8 getTemp(void);
+void abnormalDetection(void);
+u8 volatile buttonFlag = 0;
+u8 volatile abnormalFlag = 0;
+u8 volatile checkFlag = 0;
+int main(void)
+{
+	GI_enu_Enable();
+	I2C_enu_Init();
+	EEPROM_enu_Write(0,NORMAL_STATE);
+	DIO_enu_SetPinDirection(DIO_U8_PORTB,DIO_U8_PIN3,DIO_U8_OUTPUT);
+	UART_enu_Init();
+	ADC_enu_Init();
+	Timers_enu_Init(TIMER0,FAST_PWM_NON_INVERTING,CLK_8);
+	EXTI_enu_setCallBack(&pressButton,EXTI0);
+	EXTI_enu_Enable(EXTI0,RISING_EDGE);
+	//_delay_ms(200);
+	while(1){
+		u8 temp2  = 0;
+		EEPROM_enu_Read(0,&state);
+		if(buttonFlag){
+			if((getTemp() >= 40)&&(getTemp() <= 50)){
+				UART_enu_sendString("SM");
+			}
+			buttonFlag = 0;
+		}
+		switch(state){
+		case NORMAL_STATE:{
+			temp2 = getTemp();
+			if(lastTemp - temp2){
+			UART_enu_sendNUmber(temp2);
+			//_delay_ms(50);
+			if(temp2 < 20){
+				Timers_enu_Stop(TIMER0);
+				DIO_enu_SetPinValue(DIO_U8_PORTB,DIO_U8_PIN3,DIO_U8_LOW);
+			}else if((temp2 >= 20)&&(temp2 <= 40)){
+				Timers_enu_Init(TIMER0,FAST_PWM_NON_INVERTING,CLK_8);
+				u8 fanSpeed = ((temp2 *127)/10)-254;
+				Timers_enu_TimerSetCompareValue(TIMER0,fanSpeed);
+			}else if((temp2 >= 40)&&(temp2 <= 50)){
+				Timers_enu_Init(TIMER0,FAST_PWM_NON_INVERTING,CLK_8);
+				Timers_enu_TimerSetCompareValue(TIMER0,255);
+			}else if(temp2 > 50){
+				EEPROM_enu_Write(0,EMERGENCY_STATE);
+			}
+			lastTemp = temp2;
+		}
+
+			break;
+		}
+		case EMERGENCY_STATE:
+			if(!checkFlag)
+			{
+				Timers_enu_SetTimerValue(TIMER1,57723);
+				Timers_enu_SetCallBack(TIMER1,&abnormalDetection,NORMAL_MODE);
+				Timers_enu_Init(TIMER1,NORMAL_MODE,CLK_1024);
+				Timers_enu_TimerSetCompareValue(TIMER0,255);
+				checkFlag = 1;
+			}
+			if(getTemp() < 50){
+				EEPROM_enu_Write(0,NORMAL_STATE);
+			}
+			break;
+		case ABNORMAL_STATE:
+			WDT_enu_Enable(TIME_16_3_MS);
+			UART_enu_sendString("AB");
+			break;
+		}
+
+	}
+
+	return 0;
+}
+void pressButton(void){
+	buttonFlag = 1;
+}
+u8 getTemp(void){
+	u16 digitalValue = 0;
+	ADC_enu_GetDigitalValueSynchNonBlocking(ADC_U8_CHANNEL0,&digitalValue);
+	return ((digitalValue*500UL)/1023);
+}
+void abnormalDetection(void)
+{
+	static u8 counter = 0;
+	counter++;
+	Timers_enu_SetTimerValue(TIMER1,57723);
+	if(getTemp()<50){
+		EEPROM_enu_Write(0,NORMAL_STATE);
+		Timers_enu_Stop(TIMER1);
+		checkFlag = 0;
+	}
+	if(14==counter){
+		Timers_enu_Stop(TIMER1);
+		checkFlag = 0;
+		EEPROM_enu_Write(0,ABNORMAL_STATE);
+	}
+}

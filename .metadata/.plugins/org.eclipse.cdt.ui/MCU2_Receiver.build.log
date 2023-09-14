@@ -1,4 +1,4 @@
-15:20:44 **** Incremental Build of configuration Debug for project MCU2_Receiver ****
+11:29:38 **** Incremental Build of configuration Debug for project MCU2_Receiver ****
 make all 
 Invoking: Print Size
 avr-size --format=avr --mcu=atmega32 MCU2_Receiver.elf
@@ -6,15 +6,15 @@ AVR Memory Usage
 ----------------
 Device: atmega32
 
-Program:   19948 bytes (60.9% Full)
+Program:   21840 bytes (66.7% Full)
 (.text + .data + .bootloader)
 
-Data:         51 bytes (2.5% Full)
+Data:        126 bytes (6.2% Full)
 (.data + .bss + .noinit)
 
 
 Finished building: sizedummy
  
 
-15:20:45 Build Finished (took 295ms)
+11:29:38 Build Finished (took 297ms)
 
